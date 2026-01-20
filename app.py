@@ -10,13 +10,6 @@ from src.topic_modeling import train_lda
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="ReviewScope", layout="wide")
 
-# ---------------- THEME TOGGLE ----------------
-theme = st.sidebar.radio("🎨 Theme", ["Light", "Dark"])
-if theme == "Dark":
-    st.markdown(
-        "<style>body{background-color:#0e1117;color:white}</style>",
-        unsafe_allow_html=True
-    )
 
 st.title("📊 ReviewScope – Smart Review Analysis Platform")
 st.caption(
@@ -102,6 +95,19 @@ with tabs[2]:
                 st.subheader("😊 Sentiment Distribution")
                 sentiment_counts = df["sentiment"].value_counts()
                 sentiment_percent = sentiment_counts / sentiment_counts.sum() * 100
+                st.subheader("📊 Positive vs Negative Comparison")
+
+                comparison_df = pd.DataFrame({
+                 "Sentiment": ["Positive", "Negative"],
+                 "Count": [
+                 (df["sentiment"] == "Positive").sum(),
+                 (df["sentiment"] == "Negative").sum()
+                 ]
+                 })
+
+                st.bar_chart(comparison_df.set_index("Sentiment"))
+
+
 
                 col1, col2 = st.columns(2)
                 with col1:
