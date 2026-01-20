@@ -31,7 +31,7 @@ def sentiment_confidence(text):
 # ---------------- MAIN TABS ----------------
 tabs = st.tabs([
     "🏠 Overview",
-    "📝 Live Text Analysis",
+    "📝 Single Text Analysis",
     "📂 Dataset Analysis",
     "🔑 Keyword Insights",
     "📊 Dashboard"
@@ -62,11 +62,8 @@ with tabs[1]:
 
     if text.strip():
         sentiment = get_sentiment(text)
-        confidence = sentiment_confidence(text)
-
         st.success(f"Sentiment: **{sentiment}**")
-        st.progress(confidence / 100)
-        st.caption(f"Confidence Score: {confidence}%")
+
 
 # ================= DATASET ANALYSIS =================
 with tabs[2]:
@@ -95,18 +92,19 @@ with tabs[2]:
                 st.subheader("😊 Sentiment Distribution")
                 sentiment_counts = df["sentiment"].value_counts()
                 sentiment_percent = sentiment_counts / sentiment_counts.sum() * 100
-                st.subheader("📊 Positive vs Negative Comparison")
+                
+                st.subheader("📈 Sentiment Trend Over Time")
+                trend_df = df.copy()
+                trend_df["index"] = range(len(trend_df))
+                sentiment_map = {
+                "Positive": 1,
+                "Neutral": 0,
+                "Negative": -1
+                 }
 
-                comparison_df = pd.DataFrame({
-                 "Sentiment": ["Positive", "Negative"],
-                 "Count": [
-                 (df["sentiment"] == "Positive").sum(),
-                 (df["sentiment"] == "Negative").sum()
-                 ]
-                 })
-
-                st.bar_chart(comparison_df.set_index("Sentiment"))
-
+                 trend_df["sentiment_score"] = trend_df["sentiment"].map(sentiment_map)
+                 st.line_chart(trend_df.set_index("index")["sentiment_score"])
+  
 
 
                 col1, col2 = st.columns(2)
