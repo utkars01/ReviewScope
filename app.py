@@ -93,18 +93,22 @@ with tabs[2]:
                 sentiment_counts = df["sentiment"].value_counts()
                 sentiment_percent = sentiment_counts / sentiment_counts.sum() * 100
                 
+                # -------- Sentiment Trend Over Time --------
                 st.subheader("📈 Sentiment Trend Over Time")
+                
                 trend_df = df.copy()
                 trend_df["index"] = range(len(trend_df))
+                
                 sentiment_map = {
-                "Positive": 1,
-                "Neutral": 0,
-                "Negative": -1
-                 }
+                    "Positive": 1,
+                    "Neutral": 0,
+                    "Negative": -1
+                }
+                
+                trend_df["sentiment_score"] = trend_df["sentiment"].map(sentiment_map)
+                
+                st.line_chart(trend_df.set_index("index")["sentiment_score"])
 
-                 trend_df["sentiment_score"] = trend_df["sentiment"].map(sentiment_map)
-                 st.line_chart(trend_df.set_index("index")["sentiment_score"])
-  
 
 
                 col1, col2 = st.columns(2)
