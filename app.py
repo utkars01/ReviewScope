@@ -5,9 +5,15 @@ from src.preprocessing import clean_text
 from src.sentiment_analysis import get_sentiment
 from src.topic_modeling import train_lda
 
-st.set_page_config(page_title="Dynamic Text Analysis", layout="wide")
+st.set_page_config(
+    page_title="ReviewScope",
+    layout="wide"
+)
 
-st.title("Dynamic Text Analysis – Web Application")
+
+st.title("ReviewScope – Smart Review Analysis Platform")
+st.caption("Analyze customer reviews to discover sentiment trends and hidden topics")
+
 st.write("Upload a CSV file with a 'review' column to analyze text.")
 
 uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
