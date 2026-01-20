@@ -3,7 +3,6 @@ numpy
 nltk
 gensim
 scikit-learn
-textblob
 matplotlib
 seaborn
 streamlit
