@@ -2,8 +2,11 @@ positive_words = {
     "good", "great", "excellent", "amazing", "awesome", "fantastic",
     "love", "loved", "lovely", "nice", "perfect", "best", "wonderful",
     "satisfied", "happy", "pleased", "delightful", "positive",
-    "recommend", "worth", "value", "reliable", "smooth", "fast",
-    "comfortable", "beautiful", "impressive", "brilliant"
+    "recommend", "recommended", "worth", "value", "reliable", "smooth",
+    "fast", "quick", "comfortable", "beautiful", "impressive",
+    "brilliant", "outstanding", "superb", "exceptional", "efficient",
+    "friendly", "helpful", "affordable", "durable", "accurate",
+    "easy", "simple", "convenient"
 }
 
 negative_words = {
@@ -11,7 +14,9 @@ negative_words = {
     "boring", "disappointed", "waste", "problem", "negative",
     "slow", "delay", "damaged", "broken", "useless", "cheap",
     "defective", "refund", "return", "complaint", "unhappy",
-    "frustrating", "annoying", "pathetic", "failure"
+    "frustrating", "annoying", "pathetic", "failure", "faulty",
+    "hard", "difficult", "confusing", "expensive", "overpriced",
+    "unreliable", "rude", "late", "missing", "incomplete"
 }
 
 def get_sentiment(text):
