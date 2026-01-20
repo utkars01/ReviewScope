@@ -10,38 +10,64 @@ st.set_page_config(
     layout="wide"
 )
 
+st.title("📊 ReviewScope – Smart Review Analysis Platform")
+st.caption("Analyze customer reviews using sentiment analysis and topic modeling")
 
-st.title("ReviewScope – Smart Review Analysis Platform")
 
-st.caption("Analyze customer reviews to discover sentiment trends and hidden topics")
+st.subheader("📝 Instant Review Analysis")
 
-st.sidebar.header("⚙️ Controls")
-st.sidebar.write("Follow the steps below")
+user_text = st.text_area(
+    "Paste a review below",
+    placeholder="Example: The product quality is amazing and delivery was fast..."
+)
+
+analyze_text_btn = st.button("🔍 Analyze Text")
+
+if analyze_text_btn and user_text.strip() != "":
+    clean = clean_text(user_text)
+    sentiment = get_sentiment(user_text)
+
+    st.success(f"**Sentiment:** {sentiment}")
+elif analyze_text_btn:
+    st.warning("Please enter some text to analyze")
+
+st.divider()
+
+
+st.sidebar.header("⚙️ Dataset Analysis Controls")
 
 uploaded_file = st.sidebar.file_uploader(
-    "📂 Upload CSV file",
+    "📂 Upload CSV File",
     type=["csv"]
 )
 
-start_analysis = st.sidebar.button("🚀 Run Analysis")
+num_topics = st.sidebar.slider(
+    "🧠 Number of Topics",
+    min_value=2,
+    max_value=10,
+    value=5
+)
+
+run_button = st.sidebar.button("🚀 Run Dataset Analysis")
+
 
 if uploaded_file is None:
-    st.info("⬅️ Upload a CSV file from the sidebar to begin")
+    st.info("⬅️ Upload a CSV file from the sidebar to analyze a dataset")
 else:
     df = pd.read_csv(uploaded_file)
 
     if "review" not in df.columns:
-        st.error("CSV must contain a column named 'review'")
+        st.error("❌ CSV must contain a column named 'review'")
     else:
         st.subheader("📄 Dataset Preview")
         st.dataframe(df.head())
 
-        if start_analysis:
-            with st.spinner("🔄 Processing text..."):
+        if run_button:
+            with st.spinner("🔄 Processing dataset..."):
                 df["clean_text"] = df["review"].apply(clean_text)
                 df["sentiment"] = df["review"].apply(get_sentiment)
 
-            st.success("✅ Text processing completed")
+            st.success("✅ Dataset analysis completed")
 
             tab1, tab2, tab3 = st.tabs(
                 ["😊 Sentiment Analysis", "🧠 Topic Modeling", "📊 Insights"]
@@ -51,19 +77,31 @@ else:
                 st.subheader("Sentiment Distribution")
                 st.bar_chart(df["sentiment"].value_counts())
 
-                st.subheader("Sample Sentiment Results")
+                st.subheader("Sample Results")
                 st.dataframe(df[["review", "sentiment"]].head(10))
 
             with tab2:
                 st.subheader("Extracted Topics")
-                lda, topics, coherence = train_lda(df["clean_text"])
+                lda, topics, coherence = train_lda(
+                    df["clean_text"],
+                    num_topics=num_topics
+                )
 
-                st.write("**Coherence Score:**", coherence)
-                for t in topics:
-                    st.write(t)
+                st.metric("Coherence Score", round(coherence, 3))
+
+                for topic in topics:
+                    st.write(topic)
 
             with tab3:
-                st.subheader("Key Insights")
-                st.metric("Total Reviews", len(df))
-                st.metric("Positive Reviews", (df["sentiment"] == "Positive").sum())
-                st.metric("Negative Reviews", (df["sentiment"] == "Negative").sum())
+                col1, col2, col3 = st.columns(3)
+
+                col1.metric("Total Reviews", len(df))
+                col2.metric(
+                    "Positive Reviews",
+                    (df["sentiment"] == "Positive").sum()
+                )
+                col3.metric(
+                    "Negative Reviews",
+                    (df["sentiment"] == "Negative").sum()
+                )
+
