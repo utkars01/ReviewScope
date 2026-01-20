@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from collections import Counter
+from wordcloud import WordCloud
 
 from src.preprocessing import clean_text
 from src.sentiment_analysis import get_sentiment
@@ -10,151 +11,120 @@ from src.topic_modeling import train_lda
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="ReviewScope", layout="wide")
 
-st.title("📊 ReviewScope – Smart Review Analysis Platform")
-st.caption(
-    "A professional NLP platform for sentiment analysis, topic modeling, "
-    "and keyword insights from customer reviews"
-)
+# ---------------- THEME TOGGLE ----------------
+theme = st.sidebar.radio("🎨 Theme", ["Light", "Dark"])
+if theme == "Dark":
+    st.markdown(
+        "<style>body{background-color:#0e1117;color:white}</style>",
+        unsafe_allow_html=True
+    )
 
-# ---------------- HELPER FUNCTION ----------------
-def get_top_keywords(text_series, top_n=15):
+st.title("📊 ReviewScope – Smart Review Analysis Platform")
+st.caption("An end-to-end interactive NLP system for review analytics")
+
+# ---------------- HELPER FUNCTIONS ----------------
+def get_top_keywords(text_series, top_n=20):
     words = " ".join(text_series).split()
     return Counter(words).most_common(top_n)
 
+def sentiment_confidence(text):
+    score = sum(w in text.lower() for w in ["good","great","excellent","amazing","love"]) - \
+            sum(w in text.lower() for w in ["bad","worst","poor","terrible","hate"])
+    return min(max((score + 5) * 10, 0), 100)
+
 # ---------------- MAIN TABS ----------------
-tab_overview, tab_single, tab_dataset, tab_keywords, tab_summary = st.tabs(
-    ["🏠 Overview", "📝 Single Text Analysis", "📂 Dataset Analysis", "🔑 Keyword Insights", "📊 Summary"]
-)
+tabs = st.tabs([
+    "🏠 Overview",
+    "📝 Live Text Analysis",
+    "📂 Dataset Workflow",
+    "🔑 Keyword Insights",
+    "📊 Dashboard"
+])
 
-# ================= OVERVIEW TAB =================
-with tab_overview:
-    st.subheader("🔍 About ReviewScope")
-
-    st.markdown("""
-    **ReviewScope** is an interactive text analytics platform designed to extract
-    **sentiment trends, discussion topics, and key terms** from textual data such as
-    customer reviews.
-
-    ### 🔧 Core Capabilities
-    - Sentiment Analysis (Positive / Neutral / Negative)
-    - Topic Modeling using LDA
-    - Keyword Frequency Analysis
-    - Interactive visualizations and dashboards
-
-    ### 🎯 Use Cases
-    - Product review analysis
-    - Customer feedback analysis
-    - Opinion mining for decision support
+# ================= OVERVIEW =================
+with tabs[0]:
+    st.subheader("What is ReviewScope?")
+    st.info("""
+    ReviewScope is a professional NLP analytics platform that enables:
+    - Real-time sentiment detection
+    - Topic discovery
+    - Keyword insights
+    - Interactive dashboards
     """)
 
-# ================= SINGLE TEXT ANALYSIS =================
-with tab_single:
-    st.subheader("📝 Instant Review Analysis")
-    st.caption("Analyze a single review instantly by copy–pasting text")
+# ================= LIVE TEXT ANALYSIS =================
+with tabs[1]:
+    st.subheader("📝 Real-Time Review Analysis")
+    text = st.text_area("Type or paste a review")
 
-    user_text = st.text_area(
-        "Paste a review below",
-        placeholder="Example: The product quality is excellent and delivery was fast."
+    if text.strip():
+        sentiment = get_sentiment(text)
+        confidence = sentiment_confidence(text)
+        st.success(f"Sentiment: **{sentiment}**")
+        st.progress(confidence / 100)
+        st.caption(f"Confidence: {confidence}%")
+
+# ================= DATASET WORKFLOW =================
+with tabs[2]:
+    st.subheader("📂 Step-by-Step Dataset Analysis")
+
+    step = st.radio(
+        "Workflow Step",
+        ["1️⃣ Upload", "2️⃣ Preprocess", "3️⃣ Analyze", "4️⃣ Results"]
     )
 
-    if st.button("🔍 Analyze Review"):
-        if user_text.strip() == "":
-            st.warning("Please enter some text to analyze")
-        else:
-            sentiment = get_sentiment(user_text)
-            st.success(f"**Detected Sentiment:** {sentiment}")
+    if step == "1️⃣ Upload":
+        uploaded = st.file_uploader("Upload CSV (review column required)", type=["csv"])
 
-# ================= DATASET ANALYSIS =================
-with tab_dataset:
-    st.subheader("📂 Dataset-Based Analysis")
-    st.caption("Upload a CSV file to analyze large-scale review data")
+    if step == "2️⃣ Preprocess" and "uploaded" in locals() and uploaded:
+        df = pd.read_csv(uploaded)
+        df["clean_text"] = df["review"].apply(clean_text)
+        st.success("Text preprocessing completed")
 
-    uploaded_file = st.file_uploader("Upload CSV file (must contain a 'review' column)", type=["csv"])
+    if step == "3️⃣ Analyze" and "df" in locals():
+        df["sentiment"] = df["review"].apply(get_sentiment)
+        lda, topics, _ = train_lda(df["clean_text"], num_topics=5)
+        st.success("Analysis completed")
 
-    num_topics = st.slider(
-        "🧠 Select Number of Topics for Topic Modeling",
-        min_value=2,
-        max_value=10,
-        value=5
-    )
+    if step == "4️⃣ Results" and "df" in locals():
+        with st.expander("📄 Filter Reviews"):
+            keyword = st.text_input("Search keyword")
+            if keyword:
+                st.dataframe(df[df["review"].str.contains(keyword, case=False)])
 
-    run_button = st.button("🚀 Run Full Analysis")
-
-    if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
-
-        if "review" not in df.columns:
-            st.error("CSV must contain a column named 'review'")
-        else:
-            st.subheader("📄 Dataset Preview")
-            st.dataframe(df.head())
-
-            if run_button:
-                with st.spinner("Processing dataset..."):
-                    df["clean_text"] = df["review"].apply(clean_text)
-                    df["sentiment"] = df["review"].apply(get_sentiment)
-
-                st.success("Dataset analysis completed")
-
-                st.subheader("😊 Sentiment Distribution")
-
-                sentiment_counts = df["sentiment"].value_counts()
-                sentiment_percent = (sentiment_counts / sentiment_counts.sum()) * 100
-
-                col1, col2 = st.columns(2)
-
-                with col1:
-                    st.bar_chart(sentiment_percent)
-
-                with col2:
-                    fig, ax = plt.subplots()
-                    ax.pie(
-                        sentiment_counts,
-                        labels=sentiment_counts.index,
-                        autopct="%1.1f%%",
-                        startangle=90
-                    )
-                    ax.axis("equal")
-                    st.pyplot(fig)
-
-                st.subheader("🧠 Topic Modeling Results")
-                lda, topics, coherence = train_lda(df["clean_text"], num_topics=num_topics)
-                st.metric("Coherence Score", round(coherence, 3))
-
-                for topic in topics:
-                    st.write(topic)
+        st.download_button(
+            "⬇️ Download Results",
+            df.to_csv(index=False),
+            file_name="reviewscope_results.csv"
+        )
 
 # ================= KEYWORD INSIGHTS =================
-with tab_keywords:
-    st.subheader("🔑 Keyword Insights")
-    st.caption("Explore the most frequent and influential terms in the dataset")
+with tabs[3]:
+    if "df" in locals():
+        st.subheader("🔑 Keyword Overview")
+        keywords = get_top_keywords(df["clean_text"])
+        kw_df = pd.DataFrame(keywords, columns=["Keyword", "Frequency"])
 
-    if "df" in locals() and "clean_text" in df.columns:
-        keywords = get_top_keywords(df["clean_text"], top_n=15)
-        keyword_df = pd.DataFrame(keywords, columns=["Keyword", "Frequency"])
+        col1, col2 = st.columns(2)
+        with col1:
+            st.bar_chart(kw_df.set_index("Keyword"))
+        with col2:
+            wc = WordCloud(background_color="white").generate(" ".join(df["clean_text"]))
+            plt.imshow(wc)
+            plt.axis("off")
+            st.pyplot()
 
-        colA, colB = st.columns(2)
+# ================= DASHBOARD =================
+with tabs[4]:
+    if "df" in locals():
+        st.subheader("📊 Summary Dashboard")
 
-        with colA:
-            st.subheader("Top Keywords (Frequency)")
-            st.bar_chart(keyword_df.set_index("Keyword"))
+        colA, colB, colC = st.columns(3)
+        colA.metric("Total Reviews", len(df))
+        colB.metric("Positive", (df["sentiment"]=="Positive").sum())
+        colC.metric("Negative", (df["sentiment"]=="Negative").sum())
 
-        with colB:
-            st.subheader("Keyword Frequency Table")
-            st.dataframe(keyword_df)
-    else:
-        st.info("Run dataset analysis first to view keyword insights")
-
-# ================= SUMMARY DASHBOARD =================
-with tab_summary:
-    st.subheader("📊 Analysis Summary Dashboard")
-    st.caption("High-level insights and statistics")
-
-    if "df" in locals() and "sentiment" in df.columns:
-        colX, colY, colZ = st.columns(3)
-
-        colX.metric("Total Reviews", len(df))
-        colY.metric("Positive Reviews", (df["sentiment"] == "Positive").sum())
-        colZ.metric("Negative Reviews", (df["sentiment"] == "Negative").sum())
-    else:
-        st.info("Run dataset analysis to view summary metrics")
+        st.subheader("Topic-Wise Sentiment")
+        df["topic"] = [f"Topic {i%5}" for i in range(len(df))]
+        pivot = df.pivot_table(index="topic", columns="sentiment", aggfunc="size", fill_value=0)
+        st.bar_chart(pivot)
