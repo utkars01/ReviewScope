@@ -141,7 +141,7 @@ with tabs[2]:
 
     if uploaded:
         df = pd.read_csv(uploaded)
-            st.dataframe(df.head())
+        st.dataframe(df.head())
 
             if run:
                 with st.spinner("Processing dataset..."):
