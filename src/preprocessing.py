@@ -1,16 +1,17 @@
 import re
-import spacy
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
 
-try:
-    nlp = spacy.load("en_core_web_sm")
-except:
-    import os
-    os.system("python -m spacy download en_core_web_sm")
-    nlp = spacy.load("en_core_web_sm")
+nltk.download("stopwords")
+nltk.download("wordnet")
+
+stop_words = set(stopwords.words("english"))
+lemmatizer = WordNetLemmatizer()
 
 def clean_text(text):
     text = str(text).lower()
     text = re.sub(r"[^a-z\s]", "", text)
-    doc = nlp(text)
-    tokens = [token.lemma_ for token in doc if not token.is_stop]
-    return " ".join(tokens)
+    words = text.split()
+    words = [lemmatizer.lemmatize(w) for w in words if w not in stop_words]
+    return " ".join(words)
