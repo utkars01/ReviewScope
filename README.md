@@ -55,7 +55,8 @@ Allows users to **paste any text** and instantly detect its sentiment.
 Performs **bulk sentiment analysis** on uploaded CSV datasets with automated processing.
 
 
-<img width="500" height="700" alt="dataset_analysis_1 png" src="https://github.com/user-attachments/assets/819beec4-fbf1-4ede-bde9-af583407fd27" /><img width="500" height="500" alt="dataset_analysis_2 png" src="https://github.com/user-attachments/assets/b8e8072e-fe24-4e6c-ac74-96d6f94701b2" />
+<img width="500" height="800" alt="dataset_analysis_1 png" src="https://github.com/user-attachments/assets/819beec4-fbf1-4ede-bde9-af583407fd27" />
+<img width="500" height="500" alt="dataset_analysis_2 png" src="https://github.com/user-attachments/assets/b8e8072e-fe24-4e6c-ac74-96d6f94701b2" />
 
 ---
 
@@ -110,9 +111,3 @@ pip install -r requirements.txt
 streamlit run app.py
 
 ---
-
-## 👤 Author
-
-**Name:** Your Name  
-**Project Title:** ReviewScope – Smart Review Analysis Platform
-
