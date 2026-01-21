@@ -1,4 +1,4 @@
-<img width="1820" height="832" alt="dataset_analysis_1 png" src="https://github.com/user-attachments/assets/622850f4-4ff5-4d32-9b18-fd9ffd6332c6" /># 📊 ReviewScope – Smart Review Analysis Platform
+# 📊 ReviewScope – Smart Review Analysis Platform
 
 ReviewScope is a **high-end AI-powered web application** designed to extract **sentiment intelligence, thematic insights, and keyword patterns** from unstructured textual data.  
 The system provides both **instant single-text analysis** and **large-scale dataset analytics** through an interactive, product-grade user interface.
@@ -36,7 +36,7 @@ The system provides both **instant single-text analysis** and **large-scale data
 Provides a **high-level introduction** to the platform, its purpose, and core capabilities.
 
 
-<img width="962" height="778" alt="overview png" src="https://github.com/user-attachments/assets/55b26952-86cc-404d-ae15-2e6cdf52c2e1" />
+<img width="600" height="600" alt="overview png" src="https://github.com/user-attachments/assets/55b26952-86cc-404d-ae15-2e6cdf52c2e1" />
 
 
 ---
