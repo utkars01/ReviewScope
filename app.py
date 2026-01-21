@@ -8,7 +8,10 @@ from src.sentiment_analysis import get_sentiment
 from src.topic_modeling import train_lda
 
 # ================== PAGE CONFIG ==================
-st.set_page_config(page_title="ReviewScope", layout="wide")
+st.set_page_config(
+    page_title="ReviewScope – Smart Review Analysis Platform",
+    layout="wide"
+)
 
 # ================== PREMIUM UI CSS ==================
 st.markdown("""
@@ -19,20 +22,35 @@ st.markdown("""
 }
 
 .card {
-    background: rgba(255, 255, 255, 0.75);
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
     border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    padding: 18px;
+    margin-bottom: 22px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.08);
     animation: fadeUp 0.6s ease-in-out;
 }
 
-.metric-card {
+.kpi-card {
     background: linear-gradient(135deg, #ffffff, #f1f5fb);
-    border-radius: 14px;
+    border-radius: 16px;
     padding: 18px;
     box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+    text-align: center;
+}
+
+.kpi-icon {
+    font-size: 28px;
+}
+
+.kpi-value {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.kpi-label {
+    font-size: 14px;
+    color: #555;
 }
 
 @keyframes fadeUp {
@@ -66,17 +84,17 @@ with tab1:
     st.subheader("🔍 About ReviewScope")
     st.markdown("""
     **ReviewScope** is an AI-powered text analytics platform designed to extract
-    meaningful insights from unstructured text data.
+    actionable insights from unstructured textual data.
 
-    **Key Capabilities**
-    - Sentiment Analysis
+    **Core Capabilities**
+    - Sentiment Intelligence
     - Topic Modeling (LDA)
-    - Keyword Intelligence
-    - Interactive Dashboards
+    - Keyword Pattern Discovery
+    - Executive-level Dashboards
     """)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ================== SINGLE TEXT ==================
+# ================== SINGLE TEXT ANALYSIS ==================
 with tab2:
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.subheader("📝 Single Text Analysis")
@@ -94,7 +112,7 @@ with tab2:
 with tab3:
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.subheader("📂 Dataset Analysis")
-    st.caption("Upload any CSV and select the column containing text")
+    st.caption("Upload a CSV file for automated sentiment analysis")
 
     uploaded = st.file_uploader("Upload CSV file", type=["csv"])
     run = st.button("🚀 Run Analysis")
@@ -102,8 +120,11 @@ with tab3:
     if uploaded:
         df = pd.read_csv(uploaded)
 
-        st.subheader("🧩 Select Text Column")
-        text_column = st.selectbox("Choose text column", df.columns)
+        if df.select_dtypes(include=["object"]).empty:
+            st.error("No text column found in the dataset")
+            st.stop()
+
+        text_column = df.select_dtypes(include=["object"]).columns[0]
 
         st.subheader("📄 Dataset Preview")
         st.dataframe(df.head())
@@ -133,14 +154,13 @@ with tab3:
                 ax.axis("equal")
                 st.pyplot(fig)
 
-            # -------- Topic Modeling (UI Summary Only) --------
+            # Topic modeling (internal, UI summary only)
             train_lda(df["clean_text"], num_topics=5)
 
             st.subheader("🧠 Topic Modeling Insights")
             st.markdown("""
-            Topic modeling was applied internally to identify **recurring themes**
-            in the dataset. Instead of exposing raw keywords, results are summarized
-            to improve interpretability.
+            Topic modeling was applied internally to identify recurring themes.
+            Results are summarized at a high level for better interpretability.
             """)
 
             c1, c2, c3 = st.columns(3)
@@ -150,7 +170,7 @@ with tab3:
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ================== KEYWORDS ==================
+# ================== KEYWORD INSIGHTS ==================
 with tab4:
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.subheader("🔑 Keyword Insights")
@@ -169,29 +189,71 @@ with tab4:
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ================== DASHBOARD ==================
+# ================== DASHBOARD (ICON KPI) ==================
 with tab5:
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.subheader("📊 Summary Dashboard")
-
     if "df" in locals() and "sentiment" in df.columns:
-        d1, d2, d3 = st.columns(3)
 
-        with d1:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-            st.metric("Total Records", len(df))
-            st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.subheader("📊 Summary Dashboard")
 
-        with d2:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-            st.metric("Positive", (df["sentiment"] == "Positive").sum())
-            st.markdown('</div>', unsafe_allow_html=True)
+        total = len(df)
+        positive = (df["sentiment"] == "Positive").sum()
+        neutral = (df["sentiment"] == "Neutral").sum()
+        negative = (df["sentiment"] == "Negative").sum()
 
-        with d3:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-            st.metric("Negative", (df["sentiment"] == "Negative").sum())
-            st.markdown('</div>', unsafe_allow_html=True)
+        k1, k2, k3, k4 = st.columns(4)
+
+        with k1:
+            st.markdown("""
+            <div class="kpi-card">
+                <div class="kpi-icon">📄</div>
+                <div class="kpi-value">{}</div>
+                <div class="kpi-label">Total Records</div>
+            </div>
+            """.format(total), unsafe_allow_html=True)
+
+        with k2:
+            st.markdown("""
+            <div class="kpi-card">
+                <div class="kpi-icon">😊</div>
+                <div class="kpi-value">{}</div>
+                <div class="kpi-label">Positive</div>
+            </div>
+            """.format(positive), unsafe_allow_html=True)
+
+        with k3:
+            st.markdown("""
+            <div class="kpi-card">
+                <div class="kpi-icon">😐</div>
+                <div class="kpi-value">{}</div>
+                <div class="kpi-label">Neutral</div>
+            </div>
+            """.format(neutral), unsafe_allow_html=True)
+
+        with k4:
+            st.markdown("""
+            <div class="kpi-card">
+                <div class="kpi-icon">😞</div>
+                <div class="kpi-value">{}</div>
+                <div class="kpi-label">Negative</div>
+            </div>
+            """.format(negative), unsafe_allow_html=True)
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.subheader("🤖 AI Insight Summary")
+
+        dominant = df["sentiment"].value_counts().idxmax()
+        dominance_pct = round((df["sentiment"].value_counts().max() / total) * 100, 2)
+
+        st.markdown(f"""
+        - Dataset contains **{total} records**
+        - **{dominant} sentiment** dominates (**{dominance_pct}%**)
+        - Overall user perception is **{dominant.lower()}**
+        """)
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
     else:
-        st.info("No analysis results available yet")
-
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.info("Run dataset analysis to view dashboard insights")
